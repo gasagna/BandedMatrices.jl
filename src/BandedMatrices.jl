@@ -7,7 +7,11 @@ import Base: getindex, setindex!, *, .*, +, .+, -, .-, ==, <, <=, >,
                 >=, ./, /, .^, ^, \, transpose, showerror
 
 
-import Base: convert, size
+import Base: convert, 
+             size,
+             eltype,
+             linearindexing,
+             LinearSlow
 
 import Base.BLAS: libblas
 
@@ -216,10 +220,11 @@ beye(n::Integer,a...) = beye(Float64,n,a...)
 
 ## Abstract Array Interface
 
-Base.size(A::BandedMatrix,k) = ifelse(k==2,size(A.data,2),A.m)
-Base.size(A::BandedMatrix) = A.m,size(A.data,2)
-
-Base.linearindexing{T}(::Type{BandedMatrix{T}})=Base.LinearSlow()
+# TODO
+# ~ implement similar
+size(A::BandedMatrix) = A.m, size(A.data, 2)
+eltype{T}(A::BandedMatrix{T}) = T
+linearindexing(::Type{BandedMatrix}) = LinearSlow()
 
 
 unsafe_getindex(A::BandedMatrix,k::Integer,j::Integer)=A.data[k-j+A.u+1,j]
