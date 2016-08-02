@@ -410,10 +410,10 @@ function Base.BLAS.axpy!{T1,T2,BM1<:BandedMatrix,BM2<:BandedMatrix}(a::Number,
                                                            Y::SubArray{T2,2,BM2})
     if bandwidth(X,1) < 0
         jr=1-bandwidth(X,1):size(X,2)
-        banded_axpy!(a,sub(X,:,jr),sub(Y,:,jr))
+        banded_axpy!(a,view(X,:,jr),view(Y,:,jr))
     elseif bandwidth(X,2) < 0
         kr=1-bandwidth(X,2):size(X,1)
-        banded_axpy!(a,sub(X,kr,:),sub(Y,kr,:))
+        banded_axpy!(a,view(X,kr,:),view(Y,kr,:))
     else
         banded_axpy!(a,X,Y)
     end
@@ -422,10 +422,10 @@ end
 function Base.BLAS.axpy!{T,BM<:BandedMatrix}(a::Number,X::SubArray{T,2,BM},Y::BandedMatrix)
     if bandwidth(X,1) < 0
         jr=1-bandwidth(X,1):size(X,2)
-        banded_axpy!(a,sub(X,:,jr),sub(Y,:,jr))
+        banded_axpy!(a,view(X,:,jr),view(Y,:,jr))
     elseif bandwidth(X,2) < 0
         kr=1-bandwidth(X,2):size(X,1)
-        banded_axpy!(a,sub(X,kr,:),sub(Y,kr,:))
+        banded_axpy!(a,view(X,kr,:),view(Y,kr,:))
     else
         banded_axpy!(a,X,Y)
     end
@@ -475,7 +475,11 @@ for typ in [BandedMatrix, BandedLU]
             $fun(lufact(AA), BB) # call BlasFloat versions
         end
     end
-    # \ is different because it needs a copy
+    # \ is different because it needs a copy, but we have to avoid ambiguity
+    @eval function (\){T<:BlasReal}(A::$typ{T}, B::VecOrMat{Complex{T}})
+        checksquare(A)
+        A_ldiv_B!(convert($typ{Complex{T}}, A), copy(B)) # goes to BlasFloat call
+    end
     @eval function (\){T<:Number, S<:Number}(A::$typ{T}, B::StridedVecOrMat{S})
         checksquare(A)
         TS = _promote_to_blas_type(T, S)

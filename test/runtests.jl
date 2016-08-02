@@ -4,6 +4,7 @@ using BandedMatrices, Base.Test
 
 include("test_indexing.jl")
 include("test_bandedlu.jl")
+include("test_bandedqr.jl")
 
 A,B=brand(10,12,2,3),brand(10,12,3,4)
 
@@ -212,7 +213,7 @@ end
 end
 
 
-gc_enable(false)
+#gc_enable(false)
 
 A*v
 @time for k=1:100
@@ -241,7 +242,7 @@ end
 
 println("Time should be   0.644119 seconds (30 allocations: 76.371 MB)")
 
-gc_enable(true)
+#gc_enable(true)
 
 
 
